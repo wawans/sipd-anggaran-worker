@@ -10,3 +10,7 @@ export function log({ response, request }: { response?: Response; request?: Requ
         }
     }
 }
+
+export function debug(message: string, errors: any = null) {
+    console.log('[DEBUG]: ' + message, errors)
+}

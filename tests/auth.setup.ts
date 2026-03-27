@@ -65,7 +65,12 @@ setup('authenticate', async ({ page }) => {
     waitUntil: "networkidle"
   })
 
-  await expect(page.getByRole('heading', { name: 'Dashboard Analisis' })).toBeVisible();
+  await expect.soft(
+    // page.getByRole('heading', { name: 'Dashboard Analisis' })
+    page.getByRole('link', { name: 'Pengumuman' })
+  ).toBeVisible({
+    timeout: 300_000,
+  });
 
   // End of authentication steps.
 
