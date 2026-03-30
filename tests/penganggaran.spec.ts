@@ -2,7 +2,7 @@ import { test, expect, } from '@playwright/test';
 import { log, debug } from '../lib/log';
 import axios from '../lib/api';
 
-test('skpd', async ({ page }) => {
+test('get skpd', async ({ page }) => {
     // page.on('response', response => log({ response }));
     const responsePromise = page.waitForResponse('**/api/renja/sub_bl/list_skpd');
 
@@ -32,58 +32,64 @@ test('skpd', async ({ page }) => {
     await expect(page.getByText('Items per page:')).toBeVisible();
 });
 
-test('skpd_kegiatan', async ({ page }) => {
-    // page.on('response', response => log({ response }));
-    const responsePromise = page.waitForResponse('**/api/renja/sub_bl/list_belanja_by_tahun_daerah_unit');
+test('get all sub kegiatan from skpd', async ({ page }) => {
+    test.setTimeout(360000000); // 60 * 60 * 1000
 
-    await page.goto('/penganggaran/anggaran/cascading/belanja?id_skpd=' + 1690, {
-        timeout: 300_000,
-        waitUntil: "networkidle"
-    });
+    const res = await axios.get('/api/getter/anggaran/skpd').then(r => r.data);
 
-    const response = await responsePromise;
-    await expect(response.ok()).toBeTruthy()
+    for (const item of res.data) {
+        debug(`get sub kegiatan from skpd ${item.nama_skpd}`)
+        const responsePromise = page.waitForResponse('**/api/renja/sub_bl/list_belanja_by_tahun_daerah_unit');
 
-    if (response.ok()) {
-        const body = await response.json();
-        await expect(body).toHaveProperty('data');
+        await page.goto('/penganggaran/anggaran/cascading/belanja?id_skpd=' + item.id_skpd, {
+            timeout: 300_000,
+            waitUntil: "networkidle"
+        });
 
-        try {
-            const xhr = await axios.post('/api/getter/anggaran/belanja/sub', { data: body.data });
-            await expect(xhr.status).toBe(200);
+        const response = await responsePromise;
+        await expect(response.ok()).toBeTruthy()
+
+        if (response.ok()) {
+            const body = await response.json();
+            await expect(body).toHaveProperty('data');
+
+            try {
+                const xhr = await axios.post('/api/getter/anggaran/belanja/sub', { data: body.data });
+                await expect(xhr.status).toBe(200);
+            }
+            catch (e) {
+                debug('Getter.Error', e)
+                throw new Error('Getter.Error')
+            }
         }
-        catch (e) {
-            debug('Getter.Error', e)
-            throw new Error('Getter.Error')
+
+        // Expects page to...
+        await expect(page.getByText('Items per page:')).toBeVisible();
+
+        const pageSize = await page.locator('.mat-paginator-page-size-select').first();
+        await pageSize.waitFor({ state: 'visible' });
+        await pageSize.click();
+
+        const pageSizeOption = await page.locator('mat-option', { hasText: '100' });
+        await pageSizeOption.waitFor({ state: 'visible' });
+        await pageSizeOption.click();
+
+        while (true) {
+            const nextButton = page.getByRole('button', { name: 'Next page' });
+            if (await nextButton.isVisible() && await nextButton.isEnabled()) {
+                await nextButton.click();
+                // sleep
+                await page.waitForTimeout(1000);
+            }
+            else {
+                break;
+            }
         }
+
+        await page.waitForLoadState('networkidle', { timeout: 300_000 });
+        // Expects page to...
+        await expect(page.getByText('Items per page:')).toBeVisible();
     }
-
-    // Expects page to...
-    await expect(page.getByText('Items per page:')).toBeVisible();
-
-    const pageSize = await page.locator('.mat-paginator-page-size-select').first();
-    await pageSize.waitFor({ state: 'visible' });
-    await pageSize.click();
-
-    const pageSizeOption = await page.locator('mat-option', { hasText: '100' });
-    await pageSizeOption.waitFor({ state: 'visible' });
-    await pageSizeOption.click();
-
-    while (true) {
-        const nextButton = page.getByRole('button', { name: 'Next page' });
-        if (await nextButton.isVisible() && await nextButton.isEnabled()) {
-            await nextButton.click();
-            // sleep
-            await page.waitForTimeout(1000);
-        }
-        else {
-            break;
-        }
-    }
-
-    await page.waitForLoadState('networkidle', { timeout: 300_000 });
-    // Expects page to...
-    await expect(page.getByText('Items per page:')).toBeVisible();
 });
 
 test('skpd_sub_kegiatan', async ({ page }) => {
