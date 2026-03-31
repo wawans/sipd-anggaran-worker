@@ -1,5 +1,5 @@
 import { test, expect, } from '@playwright/test';
-import { log, debug } from '../lib/log';
+import { log, debug, info } from '../lib/log';
 import axios from '../lib/api';
 
 test('get skpd', async ({ page }) => {
@@ -87,12 +87,16 @@ test('get all sub kegiatan from skpd', async ({ page }) => {
         }
 
         await page.waitForLoadState('networkidle', { timeout: 300_000 });
+        // sleep
+        await page.waitForTimeout(1000);
         // Expects page to...
         await expect(page.getByText('Items per page:')).toBeVisible();
     }
 });
 
-test('skpd_sub_kegiatan', async ({ page }) => {
+test('get all rinci from each sub kegiatan', async ({ page }) => {
+    test.setTimeout(86400_000); // 24 * 60 * 60 * 1000
+
     page.on('response', async (response) => {
         const url = response.url(); // urlMatches();
         const path = url.replace('https://sipd-ri.kemendagri.go.id', '');
@@ -128,6 +132,8 @@ test('skpd_sub_kegiatan', async ({ page }) => {
                 const body = await response.json();
                 const xhr = await axios.post(endpoint, { data: body.data });
                 await expect(xhr.status).toBe(200);
+                // OR
+                // await expect.soft(xhr.status).toBe(200);
             }
             catch (e) {
                 debug('Getter.Error: ' + endpoint, e)
@@ -136,38 +142,48 @@ test('skpd_sub_kegiatan', async ({ page }) => {
         }
     });
 
-    await page.goto('/penganggaran/anggaran/cascading/rincian/sub-kegiatan/' + 227349, {
-        timeout: 300_000,
-        waitUntil: "networkidle"
-    });
+    const res = await axios.get('/api/getter/anggaran/belanja/sub').then(r => r.data);
 
-    // Expects page to...
-    await expect(page.getByText('Items per page:')).toBeVisible();
+    for (const item of res.data) {
+        await test.step(`get rinci from [${item.nama_sub_skpd}]: ${item.nama_sub_giat}`, async () => {
+            info(`get rinci from [${item.nama_sub_skpd}]: ${item.nama_sub_giat}`)
 
-    const pageSize = await page.locator('.mat-paginator-page-size-select').first();
-    await pageSize.waitFor({ state: 'visible' });
-    await pageSize.click();
+            await page.goto('/penganggaran/anggaran/cascading/rincian/sub-kegiatan/' + item.id_sub_bl, {
+                timeout: 300_000,
+                waitUntil: "networkidle"
+            });
 
-    const pageSizeOption = await page.locator('mat-option', { hasText: '2147483647' });
-    await pageSizeOption.waitFor({ state: 'visible' });
-    await pageSizeOption.click();
-
-    while (true) {
-        const nextButton = page.getByRole('button', { name: 'Next page' });
-        if (await nextButton.isVisible() && await nextButton.isEnabled()) {
-            await nextButton.click();
-            // sleep
-            // await page.waitForTimeout(1000);
-            await page.waitForLoadState('networkidle', { timeout: 300_000 });
             // Expects page to...
             await expect(page.getByText('Items per page:')).toBeVisible();
-        }
-        else {
-            break;
-        }
-    }
 
-    await page.waitForLoadState('networkidle', { timeout: 300_000 });
-    // Expects page to...
-    await expect(page.getByText('Items per page:')).toBeVisible();
+            const pageSize = await page.locator('.mat-paginator-page-size-select').first();
+            await pageSize.waitFor({ state: 'visible' });
+            await pageSize.click();
+
+            const pageSizeOption = await page.locator('mat-option', { hasText: '2147483647' });
+            await pageSizeOption.waitFor({ state: 'visible' });
+            await pageSizeOption.click();
+
+            while (true) {
+                const nextButton = page.getByRole('button', { name: 'Next page' });
+                if (await nextButton.isVisible() && await nextButton.isEnabled()) {
+                    await nextButton.click();
+                    // sleep
+                    // await page.waitForTimeout(1000);
+                    await page.waitForLoadState('networkidle', { timeout: 300_000 });
+                    // Expects page to...
+                    await expect(page.getByText('Items per page:')).toBeVisible();
+                }
+                else {
+                    break;
+                }
+            }
+
+            await page.waitForLoadState('networkidle', { timeout: 300_000 });
+            // sleep
+            await page.waitForTimeout(1000);
+            // Expects page to...
+            await expect(page.getByText('Items per page:')).toBeVisible();
+        })
+    }
 });
