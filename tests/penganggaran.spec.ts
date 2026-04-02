@@ -35,7 +35,7 @@ test('get skpd', async ({ page }) => {
 test('get all sub kegiatan from skpd', async ({ page }) => {
     test.setTimeout(360000000); // 60 * 60 * 1000
 
-    const res = await axios.get('/api/getter/anggaran/skpd').then(r => r.data);
+    const res = await axios.get('/api/getter/anggaran/skpd?status=true').then(r => r.data);
 
     for (const item of res.data) {
         debug(`get sub kegiatan from skpd ${item.nama_skpd}`)
@@ -142,7 +142,7 @@ test('get all rinci from each sub kegiatan', async ({ page }) => {
         }
     });
 
-    const res = await axios.get('/api/getter/anggaran/belanja/sub').then(r => r.data);
+    const res = await axios.get('/api/getter/anggaran/belanja/sub?status=true').then(r => r.data);
 
     for (const item of res.data) {
         await test.step(`get rinci from [${item.nama_sub_skpd}]: ${item.nama_sub_giat}`, async () => {
