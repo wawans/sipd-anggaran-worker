@@ -15,6 +15,10 @@ export function debug(message: string, ...data: any[]) {
     console.debug(new Date().toLocaleString(), ' [DEBUG]: ' + message, ...data)
 }
 
+export function error(message: string, ...data: any[]) {
+    console.error(new Date().toLocaleString(), ' [ERROR]: ' + message, ...data)
+}
+
 export function info(message: string, ...data: any[]) {
     console.info(new Date().toLocaleString(), ' [INFO]: ' + message, ...data)
 }
