@@ -9,6 +9,8 @@ export function trimUrl(param: any): string | undefined {
         return `"${trimStringWithEllipsis(param, 50)}"`;
 }
 
-export function matchUrl(urlOrPredicate: string | RegExp, responseUrl: string, baseURL: string): boolean {
-    return urlMatches(baseURL, responseUrl, urlOrPredicate);
+export function matchUrl(urlOrPredicate: string | RegExp, responseUrl: string, baseURL: string | null = null): boolean {
+    const base = (process.env.BASE_URL as string) ?? 'https://sipd-ri.kemendagri.go.id';
+
+    return urlMatches(baseURL ?? base, responseUrl, urlOrPredicate);
 }
