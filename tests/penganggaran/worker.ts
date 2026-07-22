@@ -2,10 +2,11 @@ import { test, expect, Response } from '@playwright/test';
 import axios from '../../lib/api';
 import { error, debug, info } from '../../lib/log';
 import { matchUrl } from '../../lib/utils';
+import { BASE_URL } from '../../config/app';
 
 export async function worker(response: Response) {
     const url = response.url(); // urlMatches();
-    const base = (process.env.BASE_URL as string) ?? 'https://sipd-ri.kemendagri.go.id';
+    const base = BASE_URL;
     const path = url.replace(base, '');
 
     if (response.status() != 200 || path.includes('.')) return;

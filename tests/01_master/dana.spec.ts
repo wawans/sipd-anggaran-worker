@@ -2,20 +2,21 @@ import { test, expect, } from '@playwright/test';
 import { error, debug, info } from '../../lib/log';
 import axios from '../../lib/api';
 import { matchUrl } from '../../lib/utils';
+import { BASE_URL } from '../../config/app';
 
 test('get all sumber dana', async ({ page }) => {
     test.setTimeout(3600_000); // 60 * 60 * 1000
 
     page.on('response', async (response) => {
         const url = response.url(); // urlMatches();
-        const base = 'https://sipd-ri.kemendagri.go.id';
+        const base = BASE_URL;
         const path = url.replace(base, '');
 
         if (response.status() != 200 || path.includes('.')) return;
 
         let endpoint = null;
 
-        matchUrl('**/api/master/sumber_dana/listNew', url, base) && (endpoint = '/api/getter/master/dana');
+        matchUrl('**/api/master/sumber_dana/listNew', url, base) && (endpoint = '/api/master/dana');
 
         if (endpoint) {
             try {

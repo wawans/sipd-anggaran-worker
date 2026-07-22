@@ -9,7 +9,7 @@ test('get all sub kegiatan from skpd', async ({ page }) => {
 
     page.on('response', async response => await worker(response));
 
-    const res = await axios.get('/api/getter/anggaran/skpd?status=1').then(r => r.data);
+    const res = await axios.get('/api/anggaran/skpd?status=1').then(r => r.data);
     debug(`total data: ${res.data.length}`);
 
     for (const item of res.data) {
@@ -32,13 +32,13 @@ test('get all sub kegiatan from skpd', async ({ page }) => {
         })
         // mark item as done
         try {
-            const xhr = await axios.put('/api/getter/anggaran/skpd/' + item.id, { status_getter: false });
+            const xhr = await axios.put('/api/anggaran/skpd/' + item.id, { status_getter: false });
             await expect.soft(xhr.status).toBe(200);
         }
         catch (e) {
-            error('Getter.Error: ', 'Update Getter Status Failed! ', e)
+            error('Worker.Error: ', 'Update Worker Status Failed! ', e)
             // don't throw error, just log it.
-            // throw new Error('Getter.Error: done')
+            // throw new Error('Worker.Error: done')
         }
     }
 });
