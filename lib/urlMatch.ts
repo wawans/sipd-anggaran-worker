@@ -17,7 +17,22 @@
 import { isString } from './stringUtils';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#escaping
-const escapedChars = new Set(['$', '^', '+', '.', '*', '(', ')', '|', '\\', '?', '{', '}', '[', ']']);
+const escapedChars = new Set([
+  '$',
+  '^',
+  '+',
+  '.',
+  '*',
+  '(',
+  ')',
+  '|',
+  '\\',
+  '?',
+  '{',
+  '}',
+  '[',
+  ']',
+]);
 
 export function globToRegexPattern(glob: string): string {
   const tokens = ['^'];
@@ -40,10 +55,8 @@ export function globToRegexPattern(glob: string): string {
         const charAfter = glob[i + 1];
         // Match either /..something../ or /.
         if (charAfter === '/') {
-          if (charBefore === '/')
-            tokens.push('((.+/)|)');
-          else
-            tokens.push('(.*/)');
+          if (charBefore === '/') tokens.push('((.+/)|)');
+          else tokens.push('(.*/)');
           ++i;
         } else {
           tokens.push('(.*)');
@@ -79,7 +92,10 @@ export function globToRegexPattern(glob: string): string {
 }
 
 function isRegExp(obj: any): obj is RegExp {
-  return obj instanceof RegExp || Object.prototype.toString.call(obj) === '[object RegExp]';
+  return (
+    obj instanceof RegExp ||
+    Object.prototype.toString.call(obj) === '[object RegExp]'
+  );
 }
 
 export type URLMatch = string | RegExp | ((url: URL) => boolean) | URLPattern;
@@ -98,7 +114,9 @@ export type URLPattern = {
 
 // @ts-ignore URLPattern is not in @types/node yet
 // eslint-disable-next-line no-restricted-globals
-export const isURLPattern = (v: unknown): v is URLPattern => typeof globalThis.URLPattern === 'function' && v instanceof globalThis.URLPattern;
+export const isURLPattern = (v: unknown): v is URLPattern =>
+  typeof globalThis.URLPattern === 'function' &&
+  v instanceof globalThis.URLPattern;
 
 export function serializeURLPattern(v: URLPattern) {
   return {
@@ -113,25 +131,31 @@ export function serializeURLPattern(v: URLPattern) {
   };
 }
 
-export type SerializedURLMatch = { glob?: string, regexSource?: string, regexFlags?: string, urlPattern?: ReturnType<typeof serializeURLPattern> };
+export type SerializedURLMatch = {
+  glob?: string;
+  regexSource?: string;
+  regexFlags?: string;
+  urlPattern?: ReturnType<typeof serializeURLPattern>;
+};
 
-export function serializeURLMatch(match: URLMatch): SerializedURLMatch | undefined {
-  if (isString(match))
-    return { glob: match };
+export function serializeURLMatch(
+  match: URLMatch,
+): SerializedURLMatch | undefined {
+  if (isString(match)) return { glob: match };
   if (isRegExp(match))
     return { regexSource: match.source, regexFlags: match.flags };
-  if (isURLPattern(match))
-    return { urlPattern: serializeURLPattern(match) };
+  if (isURLPattern(match)) return { urlPattern: serializeURLPattern(match) };
   // Functions cannot be serialized
   return undefined;
 }
 
-function deserializeURLPattern(v: ReturnType<typeof serializeURLPattern>): URLPattern | ((url: URL) => boolean) {
+function deserializeURLPattern(
+  v: ReturnType<typeof serializeURLPattern>,
+): URLPattern | ((url: URL) => boolean) {
   // Client is on Node 24+ and can use URLPattern, Server is not. Let's match all URLs on the server, they'll be filtered again on the client.
   // @ts-ignore URLPattern is not in @types/node yet
   // eslint-disable-next-line no-restricted-globals
-  if (typeof globalThis.URLPattern !== 'function')
-    return () => true;
+  if (typeof globalThis.URLPattern !== 'function') return () => true;
 
   // @ts-ignore URLPattern is not in @types/node yet
   // eslint-disable-next-line no-restricted-globals
@@ -147,11 +171,14 @@ function deserializeURLPattern(v: ReturnType<typeof serializeURLPattern>): URLPa
   });
 }
 
-export function deserializeURLMatch(match: { glob?: string, regexSource?: string, regexFlags?: string, urlPattern?: ReturnType<typeof serializeURLPattern> }): URLMatch {
-  if (match.regexSource)
-    return new RegExp(match.regexSource, match.regexFlags);
-  if (match.urlPattern)
-    return deserializeURLPattern(match.urlPattern);
+export function deserializeURLMatch(match: {
+  glob?: string;
+  regexSource?: string;
+  regexFlags?: string;
+  urlPattern?: ReturnType<typeof serializeURLPattern>;
+}): URLMatch {
+  if (match.regexSource) return new RegExp(match.regexSource, match.regexFlags);
+  if (match.urlPattern) return deserializeURLPattern(match.urlPattern);
   return match.glob!;
 }
 
@@ -161,9 +188,13 @@ export function urlMatchesEqual(match1: URLMatch, match2: URLMatch) {
   return match1 === match2;
 }
 
-export function urlMatches(baseURL: string | undefined, urlString: string, match: URLMatch | undefined, webSocketUrl?: boolean): boolean {
-  if (match === undefined || match === '')
-    return true;
+export function urlMatches(
+  baseURL: string | undefined,
+  urlString: string,
+  match: URLMatch | undefined,
+  webSocketUrl?: boolean,
+): boolean {
+  if (match === undefined || match === '') return true;
   if (isString(match))
     match = new RegExp(resolveGlobToRegexPattern(baseURL, match, webSocketUrl));
   if (isRegExp(match)) {
@@ -171,18 +202,21 @@ export function urlMatches(baseURL: string | undefined, urlString: string, match
     return r;
   }
   const url = parseURL(urlString);
-  if (!url)
-    return false;
-  if (isURLPattern(match))
-    return match.test(url.href);
+  if (!url) return false;
+  if (isURLPattern(match)) return match.test(url.href);
   if (typeof match !== 'function')
-    throw new Error('url parameter should be string, RegExp, URLPattern or function');
+    throw new Error(
+      'url parameter should be string, RegExp, URLPattern or function',
+    );
   return match(url);
 }
 
-export function resolveGlobToRegexPattern(baseURL: string | undefined, glob: string, webSocketUrl?: boolean): string {
-  if (webSocketUrl)
-    baseURL = toWebSocketBaseUrl(baseURL);
+export function resolveGlobToRegexPattern(
+  baseURL: string | undefined,
+  glob: string,
+  webSocketUrl?: boolean,
+): string {
+  if (webSocketUrl) baseURL = toWebSocketBaseUrl(baseURL);
   glob = resolveGlobBase(baseURL, glob);
   return globToRegexPattern(glob);
 }
@@ -198,44 +232,57 @@ function resolveGlobBase(baseURL: string | undefined, match: string): string {
   if (!match.startsWith('*')) {
     const tokenMap = new Map<string, string>();
     function mapToken(original: string, replacement: string) {
-      if (original.length === 0)
-        return '';
+      if (original.length === 0) return '';
       tokenMap.set(replacement, original);
       return replacement;
     }
     // Escaped `\\?` behaves the same as `?` in our glob patterns.
     match = match.replaceAll(/\\\\\?/g, '?');
     // Special case about: URLs as they are not relative to baseURL
-    if (match.startsWith('about:') || match.startsWith('data:')
-      || match.startsWith('chrome:') || match.startsWith('edge:')
-      || match.startsWith('file:'))
+    if (
+      match.startsWith('about:') ||
+      match.startsWith('data:') ||
+      match.startsWith('chrome:') ||
+      match.startsWith('edge:') ||
+      match.startsWith('file:')
+    )
       return match;
     // Glob symbols may be escaped in the URL and some of them such as ? affect resolution,
     // so we replace them with safe components first.
-    const relativePath = match.split('/').map((token, index) => {
-      if (token === '.' || token === '..' || token === '')
-        return token;
-      // Handle special case of http*://, note that the new schema has to be
-      // a web schema so that slashes are properly inserted after domain.
-      if (index === 0 && token.endsWith(':')) {
-        // Replace any pattern with http:
-        if (token.indexOf('*') !== -1 || token.indexOf('{') !== -1)
-          return mapToken(token, 'http:');
-        // Preserve explicit schema as is as it may affect trailing slashes after domain.
-        return token;
-      }
-      const questionIndex = token.indexOf('?');
-      if (questionIndex === -1)
-        return mapToken(token, `$_${index}_$`);
-      const newPrefix = mapToken(token.substring(0, questionIndex), `$_${index}_$`);
-      const newSuffix = mapToken(token.substring(questionIndex), `?$_${index}_$`);
-      return newPrefix + newSuffix;
-    }).join('/');
+    const relativePath = match
+      .split('/')
+      .map((token, index) => {
+        if (token === '.' || token === '..' || token === '') return token;
+        // Handle special case of http*://, note that the new schema has to be
+        // a web schema so that slashes are properly inserted after domain.
+        if (index === 0 && token.endsWith(':')) {
+          // Replace any pattern with http:
+          if (token.indexOf('*') !== -1 || token.indexOf('{') !== -1)
+            return mapToken(token, 'http:');
+          // Preserve explicit schema as is as it may affect trailing slashes after domain.
+          return token;
+        }
+        const questionIndex = token.indexOf('?');
+        if (questionIndex === -1) return mapToken(token, `$_${index}_$`);
+        const newPrefix = mapToken(
+          token.substring(0, questionIndex),
+          `$_${index}_$`,
+        );
+        const newSuffix = mapToken(
+          token.substring(questionIndex),
+          `?$_${index}_$`,
+        );
+        return newPrefix + newSuffix;
+      })
+      .join('/');
     const result = resolveBaseURL(baseURL, relativePath);
     let resolved = result.resolved;
     for (const [token, original] of tokenMap) {
       const normalize = result.caseInsensitivePart?.includes(token);
-      resolved = resolved.replace(token, normalize ? original.toLowerCase() : original);
+      resolved = resolved.replace(
+        token,
+        normalize ? original.toLowerCase() : original,
+      );
     }
     match = resolved;
   }
@@ -250,7 +297,10 @@ function parseURL(url: string): URL | null {
   }
 }
 
-export function constructURLBasedOnBaseURL(baseURL: string | undefined, givenURL: string): string {
+export function constructURLBasedOnBaseURL(
+  baseURL: string | undefined,
+  givenURL: string,
+): string {
   try {
     return resolveBaseURL(baseURL, givenURL).resolved;
   } catch (e) {
