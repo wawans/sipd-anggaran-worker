@@ -5,7 +5,7 @@ import { matchUrl } from '@/lib/utils';
 import { BASE_URL } from '@/config/app';
 import { paginator } from '@/features/paginator';
 
-test('get all akun', async ({ page }) => {
+test('get all program', async ({ page }) => {
   test.setTimeout(3600_000); // 60 * 60 * 1000
 
   page.on('response', async (response) => {
@@ -17,8 +17,8 @@ test('get all akun', async ({ page }) => {
 
     let endpoint = null;
 
-    matchUrl('**/api/master/akun/listNew', url, base) &&
-      (endpoint = '/api/master/akun');
+    matchUrl('**/api/master/program/list', url, base) &&
+      (endpoint = '/api/master/program');
 
     if (endpoint) {
       try {
@@ -39,7 +39,7 @@ test('get all akun', async ({ page }) => {
     }
   });
 
-  await page.goto('/master/akun?pageIndex=1&pageSize=100', {
+  await page.goto('/master/program?pageIndex=1&pageSize=100', {
     timeout: 300_000,
     waitUntil: 'networkidle',
   });

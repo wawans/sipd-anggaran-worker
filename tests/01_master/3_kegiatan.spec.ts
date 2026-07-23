@@ -5,7 +5,7 @@ import { matchUrl } from '@/lib/utils';
 import { BASE_URL } from '@/config/app';
 import { paginator } from '@/features/paginator';
 
-test('get all urusan bidang', async ({ page }) => {
+test('get all giat', async ({ page }) => {
   test.setTimeout(3600_000); // 60 * 60 * 1000
 
   page.on('response', async (response) => {
@@ -17,8 +17,8 @@ test('get all urusan bidang', async ({ page }) => {
 
     let endpoint = null;
 
-    matchUrl('**/api/master/bidang_urusan/list', url, base) &&
-      (endpoint = '/api/master/urusanBidang');
+    matchUrl('**/api/master/giat/list', url, base) &&
+      (endpoint = '/api/master/giat');
 
     if (endpoint) {
       try {
@@ -39,7 +39,7 @@ test('get all urusan bidang', async ({ page }) => {
     }
   });
 
-  await page.goto('/master/bidang_urusan?pageIndex=1&pageSize=100', {
+  await page.goto('/master/giat?pageIndex=1&pageSize=100', {
     timeout: 300_000,
     waitUntil: 'networkidle',
   });
