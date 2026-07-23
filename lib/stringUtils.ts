@@ -15,23 +15,22 @@
  */
 
 // NOTE: this function should not be used to escape any selectors.
-export function escapeWithQuotes(text: string, char: string = '\'') {
+export function escapeWithQuotes(text: string, char: string = "'") {
   const stringified = JSON.stringify(text);
-  const escapedText = stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"');
-  if (char === '\'')
-    return char + escapedText.replace(/[']/g, '\\\'') + char;
-  if (char === '"')
-    return char + escapedText.replace(/["]/g, '\\"') + char;
-  if (char === '`')
-    return char + escapedText.replace(/[`]/g, '\\`') + char;
+  const escapedText = stringified
+    .substring(1, stringified.length - 1)
+    .replace(/\\"/g, '"');
+  if (char === "'") return char + escapedText.replace(/[']/g, "\\'") + char;
+  if (char === '"') return char + escapedText.replace(/["]/g, '\\"') + char;
+  if (char === '`') return char + escapedText.replace(/[`]/g, '\\`') + char;
   throw new Error('Invalid escape char');
 }
 
 export function escapeTemplateString(text: string): string {
   return text
-      .replace(/\\/g, '\\\\')
-      .replace(/`/g, '\\`')
-      .replace(/\$\{/g, '\\${');
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$\{/g, '\\${');
 }
 
 export function isString(obj: any): obj is string {
@@ -44,23 +43,29 @@ export function toTitleCase(name: string) {
 
 export function toSnakeCase(name: string): string {
   // E.g. ignoreHTTPSErrors => ignore_https_errors.
-  return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/([A-Z])([A-Z][a-z])/g, '$1_$2').toLowerCase();
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+    .toLowerCase();
 }
 
-export function formatObject(value: any, indent = '  ', mode: 'multiline' | 'oneline' = 'multiline'): string {
-  if (typeof value === 'string')
-    return escapeWithQuotes(value, '\'');
+export function formatObject(
+  value: any,
+  indent = '  ',
+  mode: 'multiline' | 'oneline' = 'multiline',
+): string {
+  if (typeof value === 'string') return escapeWithQuotes(value, "'");
   if (Array.isArray(value))
-    return `[${value.map(o => formatObject(o)).join(', ')}]`;
+    return `[${value.map((o) => formatObject(o)).join(', ')}]`;
   if (typeof value === 'object') {
-    const keys = Object.keys(value).filter(key => key !== 'timeout' && value[key] !== undefined).sort();
-    if (!keys.length)
-      return '{}';
+    const keys = Object.keys(value)
+      .filter((key) => key !== 'timeout' && value[key] !== undefined)
+      .sort();
+    if (!keys.length) return '{}';
     const tokens: string[] = [];
-    for (const key of keys)
-      tokens.push(`${key}: ${formatObject(value[key])}`);
+    for (const key of keys) tokens.push(`${key}: ${formatObject(value[key])}`);
     if (mode === 'multiline')
-      return `{\n${tokens.map(t => indent + t).join(`,\n`)}\n}`;
+      return `{\n${tokens.map((t) => indent + t).join(`,\n`)}\n}`;
     return `{ ${tokens.join(', ')} }`;
   }
   return String(value);
@@ -72,7 +77,7 @@ export function formatObjectOrVoid(value: any, indent = '  '): string {
 }
 
 export function quoteCSSAttributeValue(text: string): string {
-  return `"${text.replace(/["\\]/g, char => '\\' + char)}"`;
+  return `"${text.replace(/["\\]/g, (char) => '\\' + char)}"`;
 }
 
 let normalizedWhitespaceCache: Map<string, string> | undefined;
@@ -84,7 +89,10 @@ export function cacheNormalizedWhitespaces() {
 export function normalizeWhiteSpace(text: string): string {
   let result = normalizedWhitespaceCache?.get(text);
   if (result === undefined) {
-    result = text.replace(/[\u200b\u00ad]/g, '').trim().replace(/\s+/g, ' ');
+    result = text
+      .replace(/[\u200b\u00ad]/g, '')
+      .trim()
+      .replace(/\s+/g, ' ');
     normalizedWhitespaceCache?.set(text, result);
   }
   return result;
@@ -101,21 +109,26 @@ function escapeRegexForSelector(re: RegExp): string {
   // hope that it does not contain quotes and/or >> signs.
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_escape
   // TODO: rework RE usages in internal selectors away from literal representation to json, e.g. {source,flags}.
-  if (re.unicode || (re as any).unicodeSets)
-    return String(re);
+  if (re.unicode || (re as any).unicodeSets) return String(re);
   // Even number of backslashes followed by the quote -> insert a backslash.
-  return String(re).replace(/(^|[^\\])(\\\\)*(["'`])/g, '$1$2\\$3').replace(/>>/g, '\\>\\>');
+  return String(re)
+    .replace(/(^|[^\\])(\\\\)*(["'`])/g, '$1$2\\$3')
+    .replace(/>>/g, '\\>\\>');
 }
 
-export function escapeForTextSelector(text: string | RegExp, exact: boolean): string {
-  if (typeof text !== 'string')
-    return escapeRegexForSelector(text);
+export function escapeForTextSelector(
+  text: string | RegExp,
+  exact: boolean,
+): string {
+  if (typeof text !== 'string') return escapeRegexForSelector(text);
   return `${JSON.stringify(text)}${exact ? 's' : 'i'}`;
 }
 
-export function escapeForAttributeSelector(value: string | RegExp, exact: boolean): string {
-  if (typeof value !== 'string')
-    return escapeRegexForSelector(value);
+export function escapeForAttributeSelector(
+  value: string | RegExp,
+  exact: boolean,
+): string {
+  if (typeof value !== 'string') return escapeRegexForSelector(value);
   // TODO: this should actually be
   //   cssEscape(value).replace(/\\ /g, ' ')
   // However, our attribute selectors do not conform to CSS parsing spec,
@@ -123,9 +136,12 @@ export function escapeForAttributeSelector(value: string | RegExp, exact: boolea
   return `"${value.replace(/\\/g, '\\\\').replace(/["]/g, '\\"')}"${exact ? 's' : 'i'}`;
 }
 
-export function trimString(input: string, cap: number, suffix: string = ''): string {
-  if (input.length <= cap)
-    return input;
+export function trimString(
+  input: string,
+  cap: number,
+  suffix: string = '',
+): string {
+  if (input.length <= cap) return input;
   const chars = [...input];
   if (chars.length > cap)
     return chars.slice(0, cap - suffix.length).join('') + suffix;
@@ -141,12 +157,18 @@ export function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-const escaped = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' };
+const escaped = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
 export function escapeHTMLAttribute(s: string): string {
-  return s.replace(/[&<>"']/ug, char => (escaped as any)[char]);
+  return s.replace(/[&<>"']/gu, (char) => (escaped as any)[char]);
 }
 export function escapeHTML(s: string): string {
-  return s.replace(/[&<]/ug, char => (escaped as any)[char]);
+  return s.replace(/[&<]/gu, (char) => (escaped as any)[char]);
 }
 
 export function longestCommonSubstring(s1: string, s2: string): string {
@@ -157,8 +179,8 @@ export function longestCommonSubstring(s1: string, s2: string): string {
 
   // Initialize a 2D array with zeros
   const dp = Array(n + 1)
-      .fill(null)
-      .map(() => Array(m + 1).fill(0));
+    .fill(null)
+    .map(() => Array(m + 1).fill(0));
 
   // Build the dp table
   for (let i = 1; i <= n; i++) {
@@ -183,13 +205,18 @@ export function parseRegex(regex: string): RegExp {
     throw new Error(`Invalid regex, must start with '/': ${regex}`);
   const lastSlash = regex.lastIndexOf('/');
   if (lastSlash <= 0)
-    throw new Error(`Invalid regex, must end with '/' followed by optional flags: ${regex}`);
+    throw new Error(
+      `Invalid regex, must end with '/' followed by optional flags: ${regex}`,
+    );
   const source = regex.slice(1, lastSlash);
   const flags = regex.slice(lastSlash + 1);
   return new RegExp(source, flags);
 }
 
-export const ansiRegex = new RegExp('([\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~])))', 'g');
+export const ansiRegex = new RegExp(
+  '([\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~])))',
+  'g',
+);
 export function stripAnsiEscapes(str: string): string {
   return str.replace(ansiRegex, '');
 }

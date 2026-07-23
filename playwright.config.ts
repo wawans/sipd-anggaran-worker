@@ -33,6 +33,9 @@ export default defineConfig({
 
     /* Populates context with given storage state. */
     storageState: 'playwright/.auth/user.json',
+
+    /* Show browser */
+    headless: false,
   },
 
   /* Configure projects for major browsers */
