@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

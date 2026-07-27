@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.md diff=markdown
+
+CHANGELOG.md export-ignore
+README.md export-ignore
+.github/workflows/browser-tests.yml export-ignore
