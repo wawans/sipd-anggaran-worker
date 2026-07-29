@@ -5,19 +5,21 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write \"./**/*.{js,ts}\"",
+    "format:check": "prettier --check \"./**/*.{js,ts}\"",
+    "postinstall": "npx playwright install chromium"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "devDependencies": {
+  "dependencies": {
     "@playwright/test": "^1.61.1",
     "@types/node": "^25.9.5",
     "axios": "^1.18.1",
     "dotenv": "^17.4.2",
     "playwright": "^1.61.1",
+    "playwright-chromium": "^1.61.1",
     "prettier": "^3.9.6"
   }
 }

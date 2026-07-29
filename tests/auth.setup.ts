@@ -1,14 +1,13 @@
 import { test as setup, expect } from '@playwright/test';
-import path from 'path';
-
-import { BASE_URL } from '@/config/app';
-
-const AUTH_PROV = process.env.AUTH_PROV as string;
-const AUTH_KOTA = process.env.AUTH_KOTA as string;
-const AUTH_USERNAME = process.env.AUTH_USERNAME as string;
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD as string;
-
-const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+import {
+  BASE_URL,
+  TAHUN,
+  AUTH_PROV,
+  AUTH_KOTA,
+  AUTH_USERNAME,
+  AUTH_PASSWORD,
+  AUTH_FILE,
+} from '@/config/app';
 
 setup('authenticate', async ({ page }) => {
   await page.goto('/dashboard-sipd', {
@@ -57,8 +56,41 @@ setup('authenticate', async ({ page }) => {
   await input_paswd.pressSequentially(AUTH_PASSWORD);
 
   await input_paswd.press('Enter');
+  // OR
+  // await page.getByRole('button', { name: 'Login' }).click();
 
   await page.bringToFront();
+
+  // Captcha
+  const modal = await page.getByRole('dialog');
+  await modal.waitFor({ state: 'visible' });
+
+  const robot = await modal.getByText('Apakah kamu robot ?');
+  await robot.waitFor({ state: 'visible' });
+
+  const canvas = await modal.locator('#captcahCanvas');
+  await canvas.waitFor({ state: 'visible' });
+
+  const input_captcha = await modal.getByRole('textbox');
+  await input_captcha.waitFor({ state: 'visible' });
+  await input_captcha.focus(); // .click();
+  // await input_captcha.pressSequentially(AUTH_PASSWORD);
+  // await input_captcha.fill(AUTH_PASSWORD);
+  // await modal.getByRole('button', { name: 'Check' }).click();
+
+  // Tahun
+  await page.waitForURL('**/tahun/list', {
+    timeout: 300_000,
+    waitUntil: 'networkidle',
+  });
+
+  const input_tahun = await page.getByRole('combobox');
+  input_tahun.waitFor({ state: 'visible', timeout: 300_000 });
+  input_tahun.selectOption(TAHUN);
+
+  const btn_login = await page.getByRole('button', { name: 'Masuk' });
+  btn_login.waitFor({ state: 'visible' });
+  btn_login.click();
 
   await page.waitForURL('**/dashboard-sipd', {
     timeout: 300_000,
@@ -76,5 +108,5 @@ setup('authenticate', async ({ page }) => {
 
   // End of authentication steps.
 
-  await page.context().storageState({ path: authFile });
+  await page.context().storageState({ path: AUTH_FILE });
 });
