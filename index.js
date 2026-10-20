@@ -1,7 +1,13 @@
+require('dotenv').config()
+
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const readline = require('readline');
+
+const AUTH_PROV = process.env.AUTH_PROV;
+const AUTH_KOTA = process.env.AUTH_KOTA;
+const TAHUN = process.env.TAHUN;
 
 // ANSI Color Codes for stylized CLI output
 const colors = {
@@ -18,7 +24,7 @@ const colors = {
 
 // Configuration state
 const config = {
-  headed: false,
+  headed: true,
   ui: false,
   debug: false,
   project: '', // e.g. 'chromium'
@@ -93,6 +99,9 @@ function renderHeader() {
 
   console.log(
     `${colors.dim}Settings [ ${status}${colors.reset}${colors.dim} ]${colors.reset}\n`,
+  );
+  console.log(
+    `${colors.yellow}${colors.bold}Session  [ ${AUTH_PROV} | ${AUTH_KOTA} | Tahun ${TAHUN} ]${colors.reset}\n`,
   );
 }
 

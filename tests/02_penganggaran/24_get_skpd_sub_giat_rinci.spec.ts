@@ -11,7 +11,7 @@ test('get all rinci from each sub kegiatan', async ({ page }) => {
   page.on('response', async (response) => await worker(response));
 
   const res = await axios
-    .get('/api/anggaran/belanja/sub?status=1&tahun=' + TAHUN)
+    .get('/api/anggaran/belanja/sub?status=1&id_jadwal=null&tahun=' + TAHUN)
     .then((r) => r.data);
   debug(`total data: ${res.data.length}`);
 
@@ -21,7 +21,7 @@ test('get all rinci from each sub kegiatan', async ({ page }) => {
 
       await page.goto(
         '/penganggaran/anggaran/cascading/rincian/sub-kegiatan/' +
-          item.id_sub_bl,
+        item.id_sub_bl,
         {
           timeout: 300_000,
           waitUntil: 'networkidle',

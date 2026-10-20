@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { TAHUN } from '@/config/app';
-import { paginator } from '@/features/paginator';
+import { PAGE_SIZE_100, PAGE_SIZE_ID, paginator } from '@/features/paginator';
 import axios from '@/lib/api';
 import { error, debug, info } from '@/lib/log';
 import { worker } from './worker';
@@ -28,13 +28,13 @@ test('get all sub kegiatan from skpd', async ({ page }) => {
       );
 
       // Loop
-      await paginator(page);
+      await paginator(page, PAGE_SIZE_100, 'id');
 
       await page.waitForLoadState('networkidle', { timeout: 300_000 });
       // sleep
       await page.waitForTimeout(1000);
       // Expects page to...
-      await expect(page.getByText('Items per page:')).toBeVisible();
+      await expect(page.getByText(PAGE_SIZE_ID)).toBeVisible({ timeout: 300_000 });
     });
     // mark item as done
     try {
